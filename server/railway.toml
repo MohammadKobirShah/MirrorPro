@@ -1,0 +1,26 @@
+[deploy]
+startCommand = "python server.py"
+healthcheckPath = "/health"
+healthcheckTimeout = 30
+restartPolicyType = "ON_FAILURE"
+restartPolicyMaxRetries = 3
+
+[[deploy.envVars]]
+name = "PORT"
+value = "8000"
+
+[[deploy.envVars]]
+name = "RPC_SECRET"
+value = "railway_mirror_secret_2024"
+
+[[deploy.envVars]]
+name = "FILE_TTL"
+value = "0"
+
+[[deploy.envVars]]
+name = "MAX_CONCURRENT"
+value = "10"
+
+[[deploy.envVars]]
+name = "SERVER_NAME"
+value = "MirrorPro"

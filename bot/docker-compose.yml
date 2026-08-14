@@ -1,0 +1,11 @@
+version: "3.8"
+services:
+  mirror-bot:
+    build: .
+    container_name: mirrorpro-bot
+    restart: unless-stopped
+    environment:
+      - BOT_TOKEN=তোমার_বটটোকেন
+      - OWNER_ID=তোমার_ইউজারআইডি
+      - SERVER_URL=https://তোমার-মিরর-সার্ভার.up.railway.app
+      - SERVER_API_KEY=তোমার_সার্ভারের_এপিআই_কি

@@ -1,0 +1,115 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Dashboard — {{ server_name }}</title>
+<link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&family=JetBrains+Mono:wght@400;500&display=swap" rel="stylesheet">
+<style>
+  :root{--bg:#0a0a0f;--card:#13131c;--border:#1e1e2e;--text:#e4e4e7;--dim:#71717a;--accent:#6366f1;--accent2:#8b5cf6;--green:#22c55e;--red:#ef4444;}
+  *{margin:0;padding:0;box-sizing:border-box;}
+  body{font-family:'Inter',system-ui,sans-serif;background:var(--bg);color:var(--text);min-height:100vh;}
+  .nav{display:flex;justify-content:space-between;align-items:center;padding:1.2rem 2rem;border-bottom:1px solid var(--border);}
+  .logo{font-weight:700;font-size:1.15rem;background:linear-gradient(135deg,var(--accent),var(--accent2));-webkit-background-clip:text;-webkit-text-fill-color:transparent;text-decoration:none;}
+  .nav-links a{color:var(--dim);text-decoration:none;margin-left:1.5rem;font-size:.875rem;transition:color .2s;}
+  .nav-links a:hover{color:var(--text);}
+  .wrap{max-width:800px;margin:2rem auto;padding:0 1.5rem;}
+  .header-row{display:flex;justify-content:space-between;align-items:center;margin-bottom:1.5rem;}
+  .header-row h1{font-size:1.4rem;font-weight:600;}
+  .stats-row{display:grid;grid-template-columns:repeat(3,1fr);gap:1rem;margin-bottom:1.5rem;}
+  .stat-card{background:var(--card);border:1px solid var(--border);border-radius:12px;padding:1.25rem;text-align:center;}
+  .stat-card .num{font-size:1.8rem;font-weight:700;font-family:'JetBrains Mono',monospace;}
+  .stat-card .label{font-size:.75rem;color:var(--dim);text-transform:uppercase;letter-spacing:.05em;margin-top:.25rem;}
+  .stat-card.active .num{color:var(--accent);}
+  .stat-card.complete .num{color:var(--green);}
+  .task-list{display:flex;flex-direction:column;gap:.75rem;}
+  .task{background:var(--card);border:1px solid var(--border);border-radius:12px;padding:1.25rem;display:flex;align-items:center;gap:1rem;transition:border .2s;}
+  .task:hover{border-color:var(--accent);}
+  .task-icon{width:40px;height:40px;border-radius:10px;background:rgba(99,102,241,.1);display:flex;align-items:center;justify-content:center;font-size:1.1rem;flex-shrink:0;}
+  .task-main{flex:1;min-width:0;}
+  .task-name{font-size:.9rem;font-weight:500;white-space:nowrap;overflow:hidden;text-overflow:ellipsis;margin-bottom:.2rem;}
+  .task-meta{font-size:.75rem;color:var(--dim);font-family:'JetBrains Mono',monospace;display:flex;gap:1rem;flex-wrap:wrap;}
+  .task-status{font-size:.7rem;padding:.2rem .6rem;border-radius:5px;font-weight:600;text-transform:uppercase;letter-spacing:.04em;flex-shrink:0;}
+  .s-active{background:rgba(99,102,241,.12);color:var(--accent);}
+  .s-complete{background:rgba(34,197,94,.12);color:var(--green);}
+  .s-error{background:rgba(239,68,68,.12);color:var(--red);}
+  .task-actions{display:flex;gap:.5rem;flex-shrink:0;}
+  .btn-sm{font-size:.75rem;padding:.4rem .8rem;border-radius:6px;border:1px solid var(--border);background:var(--bg);color:var(--dim);cursor:pointer;text-decoration:none;transition:all .2s;}
+  .btn-sm:hover{color:var(--text);border-color:var(--accent);}
+  .btn-sm.danger:hover{color:var(--red);border-color:var(--red);}
+  .empty{text-align:center;padding:3rem;color:var(--dim);}
+  .mini-bar{width:100%;height:4px;background:var(--bg);border-radius:3px;overflow:hidden;margin-top:.4rem;}
+  .mini-fill{height:100%;background:linear-gradient(90deg,var(--accent),var(--accent2));border-radius:3px;transition:width .5s;}
+  @media(max-width:640px){.stats-row{grid-template-columns:1fr;}.task{flex-wrap:wrap;}}
+</style>
+</head>
+<body>
+<div class="nav">
+  <a href="/" class="logo">⚡ {{ server_name }}</a>
+  <div class="nav-links">
+    <a href="/">New Mirror</a>
+    <a href="/health">Health</a>
+  </div>
+</div>
+<div class="wrap">
+  <div class="header-row">
+    <h1>Dashboard</h1>
+    <button class="btn-sm" onclick="loadTasks()">↻ Refresh</button>
+  </div>
+  <div class="stats-row">
+    <div class="stat-card active"><div class="num" id="activeCount">0</div><div class="label">Active</div></div>
+    <div class="stat-card complete"><div class="num" id="completeCount">0</div><div class="label">Completed</div></div>
+    <div class="stat-card"><div class="num" id="totalCount">0</div><div class="label">Total</div></div>
+  </div>
+  <div class="task-list" id="taskList"></div>
+</div>
+<script>
+const API_KEY='{{ api_key }}';
+async function loadTasks(){
+  const headers={};
+  if(API_KEY)headers['X-API-Key']=API_KEY;
+  try{
+    const res=await fetch('/api/list',{headers});
+    const data=await res.json();
+    document.getElementById('activeCount').textContent=data.tasks.filter(t=>t.status==='active').length;
+    document.getElementById('completeCount').textContent=data.tasks.filter(t=>t.status==='complete').length;
+    document.getElementById('totalCount').textContent=data.total_tasks;
+    const list=document.getElementById('taskList');
+    if(!data.tasks.length){
+      list.innerHTML='<div class="empty">কোনো টাস্ক নেই। <a href="/" style="color:var(--accent);">নতুন মিরর শুরু করো</a></div>';
+      return;
+    }
+    list.innerHTML=data.tasks.map(t=>{
+      const cls=t.status==='active'?'s-active':t.status==='complete'?'s-complete':'s-error';
+      let meta=[];
+      if(t.source)meta.push(`🌐 ${t.source}`);
+      if(t.size_human)meta.push(`📦 ${t.size_human}`);
+      if(t.downloaded)meta.push(`⬇ ${t.downloaded}/${t.total}`);
+      if(t.expires_in_sec!==undefined)meta.push(`⏳ ${Math.floor(t.expires_in_sec/60)}m`);
+      let actions='';
+      if(t.status==='complete'&&t.mirror_url){
+        actions=`<a href="${t.mirror_url}" class="btn-sm">⬇ Download</a><a href="/status/${t.gid}" class="btn-sm">Info</a>`;
+      }else if(t.status==='active'){
+        actions=`<a href="/status/${t.gid}" class="btn-sm">Track</a>`;
+      }
+      actions+=`<button class="btn-sm danger" onclick="delTask('${t.gid}')">Delete</button>`;
+      let bar='';
+      if(t.status==='active'&&t.downloaded&&t.total){
+        const pct=parseFloat(t.downloaded)/parseFloat(t.total)*100;
+        bar=`<div class="mini-bar"><div class="mini-fill" style="width:${pct}%"></div></div>`;
+      }
+      return `<div class="task"><div class="task-icon">📄</div><div class="task-main"><div class="task-name">${t.filename||'—'}</div><div class="task-meta">${meta.join(' · ')}</div>${bar}</div><span class="task-status ${cls}">${t.status}</span><div class="task-actions">${actions}</div></div>`;
+    }).join('');
+  }catch(e){document.getElementById('taskList').innerHTML='<div class="empty">লোড করতে সমস্যা</div>';}
+}
+async function delTask(gid){
+  const headers={};
+  if(API_KEY)headers['X-API-Key']=API_KEY;
+  await fetch('/api/delete/'+gid,{method:'DELETE',headers});
+  loadTasks();
+}
+loadTasks();
+setInterval(loadTasks,5000);
+</script>
+</body>
+</html>

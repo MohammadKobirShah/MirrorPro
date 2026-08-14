@@ -1,0 +1,179 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>{{ filename }} — {{ server_name }}</title>
+<link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&family=JetBrains+Mono:wght@400;500&display=swap" rel="stylesheet">
+<style>
+  :root{--bg:#0a0a0f;--card:#13131c;--border:#1e1e2e;--text:#e4e4e7;--dim:#71717a;--accent:#6366f1;--accent2:#8b5cf6;--green:#22c55e;--red:#ef4444;--yellow:#eab308;}
+  *{margin:0;padding:0;box-sizing:border-box;}
+  body{font-family:'Inter',system-ui,sans-serif;background:var(--bg);color:var(--text);min-height:100vh;}
+  .nav{display:flex;justify-content:space-between;align-items:center;padding:1.2rem 2rem;border-bottom:1px solid var(--border);}
+  .logo{font-weight:700;font-size:1.15rem;background:linear-gradient(135deg,var(--accent),var(--accent2));-webkit-background-clip:text;-webkit-text-fill-color:transparent;text-decoration:none;}
+  .nav-links a{color:var(--dim);text-decoration:none;margin-left:1.5rem;font-size:.875rem;transition:color .2s;}
+  .nav-links a:hover{color:var(--text);}
+  .wrap{max-width:640px;margin:2.5rem auto;padding:0 1.5rem;}
+  .card{background:var(--card);border:1px solid var(--border);border-radius:16px;padding:2rem;margin-bottom:1.5rem;}
+  .file-header{display:flex;align-items:center;gap:1rem;margin-bottom:1.5rem;}
+  .file-icon{width:48px;height:48px;border-radius:12px;background:linear-gradient(135deg,rgba(99,102,241,.15),rgba(139,92,246,.15));display:flex;align-items:center;justify-content:center;font-size:1.5rem;flex-shrink:0;}
+  .file-info h2{font-size:1.1rem;font-weight:600;word-break:break-all;line-height:1.4;}
+  .source-badge{display:inline-flex;align-items:center;gap:.35rem;font-size:.75rem;color:var(--dim);margin-top:.25rem;font-family:'JetBrains Mono',monospace;}
+  .source-badge::before{content:'🌐';font-size:.7rem;}
+  .status-badge{display:inline-block;font-size:.7rem;padding:.25rem .7rem;border-radius:6px;font-weight:600;text-transform:uppercase;letter-spacing:.05em;margin-bottom:1.25rem;}
+  .status-active{background:rgba(99,102,241,.12);color:var(--accent);border:1px solid rgba(99,102,241,.25);}
+  .status-complete{background:rgba(34,197,94,.12);color:var(--green);border:1px solid rgba(34,197,94,.25);}
+  .status-error{background:rgba(239,68,68,.12);color:var(--red);border:1px solid rgba(239,68,68,.25);}
+  .progress-track{width:100%;height:8px;background:var(--bg);border-radius:6px;overflow:hidden;margin-bottom:.75rem;}
+  .progress-fill{height:100%;background:linear-gradient(90deg,var(--accent),var(--accent2));border-radius:6px;transition:width .5s ease;width:0%;}
+  .progress-fill.complete{background:linear-gradient(90deg,var(--green),#16a34a);}
+  .progress-text{display:flex;justify-content:space-between;font-size:.8rem;color:var(--dim);font-family:'JetBrains Mono',monospace;margin-bottom:1.5rem;}
+  .stats-grid{display:grid;grid-template-columns:repeat(2,1fr);gap:.75rem;margin-bottom:1.5rem;}
+  .stat{background:var(--bg);border:1px solid var(--border);border-radius:10px;padding:.875rem 1rem;}
+  .stat-label{font-size:.7rem;color:var(--dim);text-transform:uppercase;letter-spacing:.05em;margin-bottom:.25rem;}
+  .stat-value{font-size:.95rem;font-weight:600;font-family:'JetBrains Mono',monospace;}
+  .stat-value.accent{color:var(--accent);}
+  .stat-value.green{color:var(--green);}
+  .download-btn{display:flex;align-items:center;justify-content:center;gap:.5rem;width:100%;background:linear-gradient(135deg,var(--green),#16a34a);color:#fff;border:none;border-radius:10px;padding:1rem;font-size:1rem;font-weight:600;cursor:pointer;text-decoration:none;transition:opacity .2s,transform .1s;font-family:'Inter',sans-serif;}
+  .download-btn:hover{opacity:.9;}
+  .download-btn:active{transform:scale(.99);}
+  .link-row{display:flex;align-items:center;gap:.5rem;background:var(--bg);border:1px solid var(--border);border-radius:10px;padding:.75rem 1rem;margin-top:.75rem;}
+  .link-row code{flex:1;font-family:'JetBrains Mono',monospace;font-size:.8rem;color:var(--text);overflow:hidden;text-overflow:ellipsis;white-space:nowrap;}
+  .copy-btn{background:var(--card);border:1px solid var(--border);color:var(--dim);border-radius:6px;padding:.4rem .7rem;cursor:pointer;font-size:.75rem;transition:all .2s;}
+  .copy-btn:hover{color:var(--text);border-color:var(--accent);}
+  .qr-wrap{display:flex;justify-content:center;margin-top:1.25rem;}
+  .qr-wrap img{border-radius:12px;border:1px solid var(--border);}
+  .more-info{background:var(--bg);border:1px solid var(--border);border-radius:10px;padding:1rem;margin-top:1rem;}
+  .more-info h3{font-size:.75rem;color:var(--dim);text-transform:uppercase;letter-spacing:.05em;margin-bottom:.75rem;}
+  .info-row{display:flex;justify-content:space-between;padding:.4rem 0;border-bottom:1px solid var(--border);font-size:.82rem;}
+  .info-row:last-child{border-bottom:none;}
+  .info-row span:first-child{color:var(--dim);}
+  .info-row span:last-child{font-family:'JetBrains Mono',monospace;}
+  .expire-warn{font-size:.75rem;color:var(--yellow);margin-top:.75rem;text-align:center;}
+  .spinner{width:16px;height:16px;border:2px solid var(--border);border-top-color:var(--accent);border-radius:50%;animation:spin .8s linear infinite;display:inline-block;}
+  @keyframes spin{to{transform:rotate(360deg);}}
+  @media(max-width:640px){.stats-grid{grid-template-columns:1fr;}}
+</style>
+</head>
+<body>
+<div class="nav">
+  <a href="/" class="logo">⚡ {{ server_name }}</a>
+  <div class="nav-links">
+    <a href="/dashboard">Dashboard</a>
+    <a href="/">New Mirror</a>
+  </div>
+</div>
+<div class="wrap">
+  <div class="card" id="mainCard">
+    <div class="file-header">
+      <div class="file-icon">📄</div>
+      <div class="file-info">
+        <h2 id="filename">{{ filename }}</h2>
+        <div class="source-badge">{{ source }}</div>
+      </div>
+    </div>
+    <div id="statusArea"></div>
+  </div>
+</div>
+<script>
+const GID='{{ gid }}';
+const API_KEY='{{ api_key }}';
+let polling=true;
+
+async function pollFirst(){
+  if(!polling)return;
+  try{
+    const headers={};
+    if(API_KEY)headers['X-API-Key']=API_KEY;
+    const res=await fetch('/api/status/'+GID,{headers});
+    const d=await res.json();
+    if(d.status==='complete'){
+      const qr=await fetchQR(d.mirror_url);
+      d._qr=qr;
+      renderComplete(d);
+      polling=false;
+    }else{
+      render(d);
+      if(d.status==='active')setTimeout(pollFirst,2000);
+      else polling=false;
+    }
+  }catch(e){setTimeout(pollFirst,3000);}
+}
+
+function render(d){
+  const area=document.getElementById('statusArea');
+  const fn=document.getElementById('filename');
+  if(d.filename)fn.textContent=d.filename;
+  if(d.status==='active'){
+    area.innerHTML=`
+      <span class="status-badge status-active"><span class="spinner"></span>  Downloading</span>
+      <div class="progress-track"><div class="progress-fill" style="width:${d.progress_pct}%"></div></div>
+      <div class="progress-text"><span>${d.downloaded} / ${d.total}</span><span>${d.progress_pct}%</span></div>
+      <div class="stats-grid">
+        <div class="stat"><div class="stat-label">Speed</div><div class="stat-value accent">${d.speed}</div></div>
+        <div class="stat"><div class="stat-label">ETA</div><div class="stat-value">${d.eta}</div></div>
+        <div class="stat"><div class="stat-label">Avg Speed</div><div class="stat-value">${d.average_speed}</div></div>
+        <div class="stat"><div class="stat-label">Connections</div><div class="stat-value">${d.connections}</div></div>
+      </div>
+      <div class="more-info"><h3>Info</h3>
+        <div class="info-row"><span>GID</span><span>${d.gid}</span></div>
+        <div class="info-row"><span>Source</span><span>${d.source}</span></div>
+        <div class="info-row"><span>Started</span><span>${new Date(d.created_at).toLocaleString()}</span></div>
+      </div>`;
+  }
+  if(d.status==='error'||d.status==='removed'){
+    area.innerHTML=`
+      <span class="status-badge status-error">✕ ${d.status.toUpperCase()}</span>
+      <div class="stats-grid"><div class="stat"><div class="stat-label">Error</div><div class="stat-value">${d.error||'unknown'}</div></div></div>
+      <a href="/" class="download-btn" style="background:linear-gradient(135deg,var(--accent),var(--accent2));">← Try Again</a>`;
+  }
+}
+
+function renderComplete(d){
+  const area=document.getElementById('statusArea');
+  area.innerHTML=`
+    <span class="status-badge status-complete">✓ Mirror Ready</span>
+    <div class="progress-track"><div class="progress-fill complete" style="width:100%"></div></div>
+    <div class="progress-text"><span>${d.size_human}</span><span>100%</span></div>
+    <div class="stats-grid">
+      <div class="stat"><div class="stat-label">Size</div><div class="stat-value">${d.size_human}</div></div>
+      <div class="stat"><div class="stat-label">Duration</div><div class="stat-value">${d.download_duration}</div></div>
+      <div class="stat"><div class="stat-label">Avg Speed</div><div class="stat-value green">${d.average_speed}</div></div>
+      <div class="stat"><div class="stat-label">Peak Speed</div><div class="stat-value green">${d.peak_speed}</div></div>
+    </div>
+    <a href="${d.mirror_url}" class="download-btn">⬇ Download from Mirror</a>
+    <div class="link-row">
+      <code>${d.mirror_url}</code>
+      <button class="copy-btn" onclick="copyLink('${d.mirror_url}')">Copy</button>
+    </div>
+    ${d._qr?`<div class="qr-wrap"><img src="data:image/png;base64,${d._qr}" alt="QR" width="180" height="180"></div>`:''}
+    ${d.auto_delete?`<div class="expire-warn">⏳ Auto-delete in ${Math.floor(d.expires_in_sec/60)}m</div>`:''}
+    <div class="more-info"><h3>Details</h3>
+      <div class="info-row"><span>GID</span><span>${d.gid}</span></div>
+      <div class="info-row"><span>Filename</span><span>${d.filename}</span></div>
+      <div class="info-row"><span>Source Server</span><span>${d.source}</span></div>
+      <div class="info-row"><span>Source URL</span><span style="max-width:280px;overflow:hidden;text-overflow:ellipsis;">${d.source_url}</span></div>
+      <div class="info-row"><span>Size</span><span>${d.size_bytes.toLocaleString()} bytes</span></div>
+      <div class="info-row"><span>Started</span><span>${new Date(d.created_at).toLocaleString()}</span></div>
+      <div class="info-row"><span>Completed</span><span>${new Date(d.completed_at).toLocaleString()}</span></div>
+    </div>`;
+}
+
+function copyLink(url){
+  navigator.clipboard.writeText(url);
+  event.target.textContent='✓';
+  setTimeout(()=>event.target.textContent='Copy',1500);
+}
+
+async function fetchQR(mirrorUrl){
+  try{
+    const res=await fetch('/api/qr?url='+encodeURIComponent(mirrorUrl));
+    const d=await res.json();
+    return d.qr_b64;
+  }catch{return'';}
+}
+
+pollFirst();
+</script>
+</body>
+</html>
