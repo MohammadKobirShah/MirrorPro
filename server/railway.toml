@@ -11,7 +11,7 @@ value = "8000"
 
 [[deploy.envVars]]
 name = "RPC_SECRET"
-value = "railway_mirror_secret_2024"
+value = "railway_mirror_secret_2026"
 
 [[deploy.envVars]]
 name = "FILE_TTL"
