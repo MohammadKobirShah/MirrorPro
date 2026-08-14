@@ -20,7 +20,7 @@ from typing import Optional
 # ── config ────────────────────────────────────────────────────
 
 RPC_PORT = 6800
-RPC_SECRET = os.getenv("RPC_SECRET", "eni_pro_secret_2024")
+RPC_SECRET = os.getenv("RPC_SECRET", "Kobir_pro_secret_2026")
 BIND_PORT = int(os.getenv("PORT", "8000"))
 DOWNLOAD_DIR = os.getenv("DOWNLOAD_DIR", "/app/downloads")
 FILE_TTL = int(os.getenv("FILE_TTL", "0"))
